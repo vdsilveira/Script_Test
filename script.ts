@@ -65,6 +65,7 @@ const connectOtherWallet = new Wallet(otherPrivekey,provider)
 
 const TelecoinContract = new ethers.Contract(contracTLC, TLCAbi, connectWallet)
 const AssetsContract = new ethers.Contract(contractAssets, AssetAbi, connectWallet)
+const AssetsOtherContract = new ethers.Contract(contractAssets, AssetAbi, connectOtherWallet)
 const HireContract = new ethers.Contract(contractHire, HireAssetAbi, connectWallet)
 const HireConnect =  new ethers.Contract(contractHire, HireAssetAbi, connectOtherWallet)
 const TLCwithOther = new ethers.Contract(contracTLC, TLCAbi, connectOtherWallet)
@@ -77,12 +78,12 @@ async function createAssets(id:string) {
     // Enviando a transação para criar o ativo
     const tx = await AssetsContract.CreateAssetsRegistry(
       id,                 // ID do ativo
-      "bla bla bla",          // Descrição
+      "Teste de ativo",          // Descrição
       100,                    // Quantidade de ativos
       10,                     // Slices
-      3,                      // Meses disponíveis
-      10,                     // Preço total
-      3                       // Preço por slice
+      3,                  // Meses disponíveis
+   ethers.parseEther("10"),                     // Preço total
+    ethers.parseEther("2")                     // Preço por slice
     );
     
     //console.log("Transação enviada:", tx.hash);
@@ -120,11 +121,19 @@ async function transferTLC() {
 
 }
 
-async function getBalance() {
+async function getOtherBalance() {
   const Mybalance = await TelecoinContract.balanceOf(connectOtherWallet.address);
 
   console.log("Saldo em tokens:", Mybalance.toString());
   const ethBalance = await provider.getBalance(connectOtherWallet.address);
+  console.log("Saldo em ETH:", ethers.formatEther(ethBalance), "ETH");
+ 
+}
+async function getMKTBalance() {
+  const Mybalance = await TelecoinContract.balanceOf(connectWallet.address);
+
+  console.log("Saldo em tokens:", Mybalance.toString());
+  const ethBalance = await provider.getBalance(connectWallet.address);
   console.log("Saldo em ETH:", ethers.formatEther(ethBalance), "ETH");
  
 }
@@ -133,11 +142,47 @@ async function approveHireAssets() {
   const walletAddress = connectOtherWallet.address;
   const Mybalance = await TelecoinContract.balanceOf(walletAddress);
 
+  
+  const tx1 = await TLCwithOther.approve(HireConnect,Mybalance)
+  
+  console.log(tx1)
+  
+}
+
+async function approveAssets() {
+  const walletAddress = connectOtherWallet.address;
+  const Mybalance = await TelecoinContract.balanceOf(walletAddress);
+
   const tx = await TLCwithOther.approve(contractHire,Mybalance)
+  
   console.log(tx)
+  
+}
+
+
+
+async function allowlistHireAssets() {
+  const walletAddress = connectOtherWallet.address;
+
+
+ 
+  const tx2 = await TLCwithOther.allowance(connectOtherWallet.address, HireConnect)
+  console.log(tx2)
 
   
 }
+
+async function allowlisteAssets() {
+  const walletAddress = connectOtherWallet.address;
+
+
+  const tx = await TLCwithOther.allowance(connectOtherWallet.address, contractHire)
+  console.log(tx)
+ 
+  
+}
+
+
 async function approveHireService() {
   const walletAddress = connectOtherWallet.address;
   const Mybalance = await TelecoinContract.balanceOf(walletAddress);
@@ -153,33 +198,29 @@ async function approveHireService() {
 async function HireAssets(id:string) {
 
 
-  //try {
+ 
+  const tx = await HireConnect.hireAsset(id, 1, { gasLimit: 500000 });
 
+
+    console.log(tx)
    
-  //   const tx1 = await HireConnect.hireAsset(
-  //     id,                 // ID do ativo
-  //     10,                     // Slices
-      
-  //   );
-    
-  //   console.log("Transação enviada:", tx1);
-    
-    
-  //   const receipt = await tx1.wait();
-  //   console.log("Transação confirmada:", receipt);
-  // } catch (error) {
-  //   console.error("Erro ao criar ativo:", error);
-  // }
 
-  try {
-    // Use staticCall para realizar a chamada de método sem enviar transação
-    const result = await HireConnect.hireAsset.staticCall(id, 1);
-    console.log("Execução estática bem-sucedida:", result);
-  } catch (error) {
-    console.error("Erro durante execução estática:", error);
-  }
+  // try {
+  //   // Use staticCall para realizar a chamada de método sem enviar transação
+  //   const result = await HireConnect.hireAsset.staticCall(id, 1);
+  //   console.log("Execução estática bem-sucedida:", result);
+  // } catch (error) {
+  //   console.error("Erro durante execução estática:", error);
+  // }
   
   
+}
+
+async function  hireAsetsWithAsssetsContract(Id:string){
+
+  const slices = 1
+  const tx = await AssetsOtherContract._hireAsset( Id,slices, contractHire, connectOtherWallet.address) 
+  console.log(tx)
 }
 
 async function BalanceHireAssets() {
@@ -271,18 +312,23 @@ async function getServiceHired(id:string) {
   }
 }
 
-var id= "200"
+var id= "13"
 
- // createAssets(id);
- // getAssets(id)
- // approveHire()
- // HireAssets(id)
- // BalanceHireAssets()
- // getBalance();
- // transferTLC()
- // createService(id )
- // getService(id)
- // approveHireService()
- // HireService(id)
+// createAssets(id);
+//getAssets(id)
+// approveHireAssets()
+// approveAssets()
+// allowlisteAssets()
+// allowlistHireAssets()
+// hireAsetsWithAsssetsContract(id)
+// HireAssets(id)
+// BalanceHireAssets()
+// getOtherBalance();
+// getMKTBalance()
+// transferTLC()
+// createService(id )
+// getService(id)
+// approveHireService()
+// HireService(id)
 // getServiceHired(id)
  
